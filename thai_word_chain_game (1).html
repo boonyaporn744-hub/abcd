@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ต่อคำหรรษา - เกมต่อคำภาษาไทย (Thai Word Chain)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt & Kanit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tone.js for Web Audio Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        thai: {
+                            gold: '#F59E0B',
+                            saffron: '#EA580C',
+                            terracotta: '#C2410C',
+                            cream: '#FFFBEB',
+                            sand: '#FEF3C7',
+                            emerald: '#059669',
+                            indigo: '#312E81',
+                            lotus: '#EC4899'
+                        }
+                    },
+                    animation: {
+                        'bounce-short': 'bounceShort 0.5s ease-in-out',
+                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        bounceShort: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(6px, 0, 0)' }
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.85) translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'scale(1) translateY(0)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-6px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Prompt', 'Kanit', sans-serif;
+            background-color: #FFFBEB;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(234, 88, 12, 0.14) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(5, 150, 105, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Thai geometric pattern overlay */
+        .thai-pattern-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d97706' fill-opacity='0.05'%3E%3Cpath d='M30 0l15 15-15 15-15-15L30 0zm0 30l15 15-15 15-15-15 15-15z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Custom scrollbar for Word Chain Chat History */
+        .chain-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chain-scroll::-webkit-scrollbar-track {
+            background: rgba(254, 243, 199, 0.5);
+            border-radius: 10px;
+        }
+        .chain-scroll::-webkit-scrollbar-thumb {
+            background: rgba(217, 119, 6, 0.35);
+            border-radius: 10px;
+        }
+        .chain-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(217, 119, 6, 0.6);
+        }
+
+        /* Glassmorphism card */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+    </style>
+</head>
+<body class="thai-pattern-bg text-slate-800 flex flex-col justify-between selection:bg-amber-200 selection:text-amber-900">
+
+    <!-- Top Navigation / Header -->
+    <header class="w-full max-w-4xl mx-auto px-4 pt-4 pb-2 flex items-center justify-between">
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="returnToMenu()">
+            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+                <span class="text-xl sm:text-2xl font-extrabold">ต</span>
+            </div>
+            <div>
+                <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-700 via-amber-600 to-orange-600 bg-clip-text text-transparent leading-tight">
+                    ต่อคำหรรษา
+                </h1>
+                <p class="text-[11px] sm:text-xs text-amber-800/70 font-medium">Thai Word Chain Game</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- High Score Badge -->
+            <div class="hidden sm:flex items-center gap-1.5 bg-amber-100/90 border border-amber-300/70 px-3 py-1.5 rounded-full text-xs font-semibold text-amber-900 shadow-sm">
+                <i class="fa-solid fa-trophy text-amber-500"></i>
+                <span>สถิติสูงสุด: <span id="headerHighScore">0</span></span>
+            </div>
+
+            <!-- Rules Modal Button -->
+            <button onclick="toggleRulesModal(true)" class="p-2.5 rounded-xl bg-white/80 hover:bg-amber-100 text-amber-800 border border-amber-200/80 shadow-sm transition active:scale-95" title="กติกาการเล่น">
+                <i class="fa-solid fa-circle-question text-base sm:text-lg"></i>
+            </button>
+
+            <!-- Sound Toggle Button -->
+            <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-white/80 hover:bg-amber-100 text-amber-800 border border-amber-200/80 shadow-sm transition active:scale-95" title="เปิด/ปิดเสียง">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-base sm:text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl mx-auto px-4 py-2 flex-1 flex flex-col justify-center">
+
+        <!-- ==================== 1. START / SETUP SCREEN ==================== -->
+        <section id="setupScreen" class="glass-panel rounded-3xl p-5 sm:p-8 shadow-xl shadow-amber-900/5 animate-pop-in">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold mb-2 border border-orange-200">
+                    <i class="fa-solid fa-sparkles"></i> คลังคำศัพท์ภาษาไทยกว่า 450+ คำ
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-1.5">พร้อมประลองคลังคำศัพท์หรือยัง?</h2>
+                <p class="text-sm sm:text-base text-slate-600 max-w-lg mx-auto">
+                    เลือกโหมดการเล่นและรูปแบบการต่อคำที่ต้องการ แล้วมาสร้างสายโซ่คำศัพท์ภาษาไทยให้ยาวที่สุด!
+                </p>
+            </div>
+
+            <!-- Mobile High Score Display -->
+            <div class="sm:hidden flex justify-center mb-5">
+                <div class="inline-flex items-center gap-2 bg-amber-100 border border-amber-300 px-4 py-1.5 rounded-full text-xs font-bold text-amber-900">
+                    <i class="fa-solid fa-trophy text-amber-500"></i>
+                    <span>สถิติสูงสุดของคุณ: <span id="mobileHighScore">0</span> คะแนน</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                <!-- Game Mode Selection -->
+                <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/70">
+                    <label class="block text-sm font-bold text-amber-950 mb-3 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">1</span>
+                        เลือกโหมดการเล่น
+                    </label>
+                    <div class="space-y-2.5">
+                        <button type="button" id="modeAiBtn" onclick="selectGameMode('ai')" class="w-full text-left p-3.5 rounded-xl border-2 border-orange-500 bg-white shadow-sm transition flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="fa-solid fa-robot text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                    ดวลกับบอท (Vs AI)
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold">แนะนำ</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">สลับกันต่อคำกับน้องบอท แข่งกับเวลาในแต่ละรอบ</p>
+                            </div>
+                        </button>
+
+                        <button type="button" id="modeSoloBtn" onclick="selectGameMode('solo')" class="w-full text-left p-3.5 rounded-xl border-2 border-transparent bg-white/70 hover:bg-white transition flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <i class="fa-solid fa-fire text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm sm:text-base">เล่นคนเดียวทำคอมโบ (Solo Endless)</div>
+                                <p class="text-xs text-slate-500 mt-0.5">ต่อคำต่อเนื่องคนเดียว สะสมคอมโบทำคะแนนสูงสุด</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rule & Timer Selection -->
+                <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/70 flex flex-col justify-between">
+                    <div>
+                        <label class="block text-sm font-bold text-amber-950 mb-3 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">2</span>
+                            รูปแบบการเชื่อมคำ
+                        </label>
+                        <div class="grid grid-cols-1 gap-2.5 mb-4">
+                            <button type="button" id="ruleSyllableBtn" onclick="selectRuleType('syllable')" class="w-full text-left p-3 rounded-xl border-2 border-orange-500 bg-white shadow-sm transition">
+                                <div class="font-bold text-slate-800 text-sm flex items-center justify-between">
+                                    <span>🔗 ต่อพยางค์สุดท้าย (Syllable)</span>
+                                    <i class="fa-solid fa-circle-check text-orange-500" id="ruleSyllableCheck"></i>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    เช่น มะ<span class="font-bold text-orange-600 underline">ม่วง</span> <i class="fa-solid fa-arrow-right text-[10px] mx-0.5"></i> <span class="font-bold text-orange-600 underline">ม่วง</span>คราม <i class="fa-solid fa-arrow-right text-[10px] mx-0.5"></i> คราม<span class="font-bold text-emerald-600">...</span>
+                                </p>
+                            </button>
+
+                            <button type="button" id="ruleLetterBtn" onclick="selectRuleType('letter')" class="w-full text-left p-3 rounded-xl border-2 border-transparent bg-white/70 hover:bg-white transition">
+                                <div class="font-bold text-slate-800 text-sm flex items-center justify-between">
+                                    <span>🔤 ต่อตัวอักษรสุดท้าย (Last Letter)</span>
+                                    <i class="fa-solid fa-circle-check text-slate-300" id="ruleLetterCheck"></i>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    เช่น มะม่ว<span class="font-bold text-orange-600 underline">ง</span> <i class="fa-solid fa-arrow-right text-[10px] mx-0.5"></i> <span class="font-bold text-orange-600 underline">ง</span>ูเห่า <i class="fa-solid fa-arrow-right text-[10px] mx-0.5"></i> เ<span class="font-bold text-orange-600 underline">ห</span>่าฉลาม
+                                </p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Timer Duration Setting -->
+                    <div>
+                        <label class="block text-xs font-bold text-amber-900 mb-2">⏱️ เวลาต่อรอบ (วินาที):</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="selectTimeLimit(15)" id="time15Btn" class="py-1.5 px-2 rounded-lg text-xs font-bold border border-amber-300 bg-white text-slate-700 hover:bg-amber-100 transition">15 วินาที (ไว)</button>
+                            <button type="button" onclick="selectTimeLimit(25)" id="time25Btn" class="py-1.5 px-2 rounded-lg text-xs font-bold border-2 border-orange-500 bg-orange-50 text-orange-700 transition">25 วินาที (ปกติ)</button>
+                            <button type="button" onclick="selectTimeLimit(40)" id="time40Btn" class="py-1.5 px-2 rounded-lg text-xs font-bold border border-amber-300 bg-white text-slate-700 hover:bg-amber-100 transition">40 วินาที (ชิลล์)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Button -->
+            <button onclick="startGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-lg shadow-lg shadow-orange-500/30 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5">
+                <i class="fa-solid fa-play"></i>
+                <span>เริ่มเกมต่อคำเลย!</span>
+            </button>
+        </section>
+
+        <!-- ==================== 2. ACTIVE GAME SCREEN ==================== -->
+        <section id="gameScreen" class="hidden flex-col gap-3 sm:gap-4">
+            
+            <!-- Top HUD: Score, Combo, Mode Badge, Quit -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 shadow-md flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3 sm:gap-5">
+                    <!-- Score -->
+                    <div>
+                        <div class="text-[11px] font-medium text-slate-500">คะแนน</div>
+                        <div id="scoreDisplay" class="text-xl sm:text-2xl font-extrabold text-orange-600 leading-none">0</div>
+                    </div>
+
+                    <div class="h-8 w-px bg-amber-200"></div>
+
+                    <!-- Combo -->
+                    <div>
+                        <div class="text-[11px] font-medium text-slate-500">คอมโบ</div>
+                        <div class="flex items-center gap-1">
+                            <span id="comboDisplay" class="text-xl sm:text-2xl font-extrabold text-emerald-600 leading-none">0</span>
+                            <span id="comboFire" class="hidden text-base animate-bounce">🔥</span>
+                        </div>
+                    </div>
+
+                    <div class="h-8 w-px bg-amber-200 hidden sm:block"></div>
+
+                    <!-- Word Count -->
+                    <div class="hidden sm:block">
+                        <div class="text-[11px] font-medium text-slate-500">ต่อได้แล้ว</div>
+                        <div class="text-lg font-bold text-slate-700 leading-none"><span id="wordCountDisplay">0</span> คำ</div>
+                    </div>
+                </div>
+
+                <!-- Right side controls -->
+                <div class="flex items-center gap-2">
+                    <span id="activeRuleBadge" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-xs font-semibold border border-amber-200">
+                        ต่อพยางค์
+                    </span>
+                    <button onclick="endGame('คุณกดยอมแพ้และจบเกม')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition">
+                        <i class="fa-solid fa-flag mr-1"></i>จบเกม
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timer Progress Bar -->
+            <div class="w-full bg-amber-100/90 h-3 rounded-full overflow-hidden p-0.5 border border-amber-200/80 shadow-inner">
+                <div id="timerBar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-500 to-orange-500 transition-all duration-200 ease-linear" style="width: 100%;"></div>
+            </div>
+
+            <!-- Target Prompt Banner -->
+            <div class="glass-panel rounded-2xl p-3.5 sm:p-4 border-2 border-amber-300/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-2 bg-gradient-to-r from-amber-50/90 via-white/95 to-orange-50/90">
+                <div class="flex items-center gap-3 text-center sm:text-left">
+                    <div id="turnAvatar" class="w-11 h-11 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <div id="turnStatusText" class="text-xs font-bold text-orange-600 uppercase tracking-wide">ตาของคุณ!</div>
+                        <div class="text-sm sm:text-base text-slate-700 font-medium">
+                            คำล่าสุด: <span id="latestWordDisplay" class="font-extrabold text-slate-900 text-base sm:text-lg">มะม่วง</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Highlighted Target Syllable/Letter Box -->
+                <div class="flex items-center gap-2 bg-amber-100/90 px-4 py-2 rounded-xl border border-amber-300 shadow-sm">
+                    <span class="text-xs font-semibold text-amber-900">ต้องขึ้นต้นด้วย:</span>
+                    <span id="targetMatchDisplay" class="text-xl sm:text-2xl font-extrabold text-orange-600 bg-white px-3 py-0.5 rounded-lg shadow-sm border border-amber-200">
+                        ม่วง
+                    </span>
+                </div>
+            </div>
+
+            <!-- Word Chain History Area (Chat / Timeline Bubbles) -->
+            <div class="glass-panel rounded-3xl p-3 sm:p-4 shadow-inner flex flex-col h-[270px] sm:h-[320px] relative">
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-amber-100 text-xs text-slate-400 font-medium">
+                    <span><i class="fa-solid fa-link text-amber-500 mr-1"></i> สายโซ่คำศัพท์ (Word Chain)</span>
+                    <span id="botThinkingIndicator" class="hidden text-orange-600 font-semibold animate-pulse">
+                        <i class="fa-solid fa-robot mr-1"></i> น้องบอทกำลังคิดคำ...
+                    </span>
+                </div>
+
+                <!-- Scrollable Chain List -->
+                <div id="chainContainer" class="flex-1 overflow-y-auto chain-scroll space-y-2.5 pr-1 pb-2">
+                    <!-- Dynamic Word Cards injected here -->
+                </div>
+
+                <!-- Floating Toast / Feedback Banner inside History -->
+                <div id="feedbackToast" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg whitespace-nowrap z-10 transition-all">
+                </div>
+            </div>
+
+            <!-- Input Area & Hint Controls -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 shadow-lg">
+                <form id="wordForm" onsubmit="handleWordSubmit(event)" class="flex flex-col sm:flex-row gap-2.5">
+                    <div class="relative flex-1">
+                        <input 
+                            type="text" 
+                            id="wordInput" 
+                            autocomplete="off"
+                            placeholder="พิมพ์คำภาษาไทยที่นี่..." 
+                            class="w-full pl-4 pr-12 py-3.5 rounded-xl bg-white border-2 border-amber-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15 outline-none text-base sm:text-lg font-semibold text-slate-800 placeholder:text-slate-400 transition"
+                        >
+                        <span id="timerTextBadge" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold px-2 py-1 rounded-lg bg-amber-100 text-amber-800">
+                            25s
+                        </span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <!-- Hint Button -->
+                        <button type="button" id="hintBtn" onclick="useHint()" class="flex-1 sm:flex-none px-4 py-3.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-sm border border-amber-300 transition active:scale-95 flex items-center justify-center gap-1.5" title="ขอคำใบ้ (-15 คะแนน)">
+                            <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                            <span>คำใบ้ (<span id="hintCountDisplay">3</span>)</span>
+                        </button>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="submitBtn" class="flex-[2] sm:flex-none px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-base shadow-md shadow-orange-500/20 transition active:scale-95 flex items-center justify-center gap-2">
+                            <span>ส่งคำ</span>
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Hint Display Box (Appears when hint is used) -->
+                <div id="hintBox" class="hidden mt-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs sm:text-sm text-amber-900 flex items-center justify-between">
+                    <div>
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-1.5"></i>
+                        <span id="hintText">คำใบ้: ...</span>
+                    </div>
+                    <button type="button" onclick="applyHintWord()" class="text-xs font-bold text-orange-600 hover:underline ml-2 shrink-0">
+                        ใช้คำนี้เลย &rarr;
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. GAME OVER MODAL / SCREEN ==================== -->
+        <section id="gameOverScreen" class="hidden glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl text-center animate-pop-in">
+            <div id="gameOverIcon" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-3xl sm:text-4xl shadow-lg shadow-orange-500/30 mb-4 animate-float">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+
+            <h2 id="gameOverTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-1">จบเกมแล้ว!</h2>
+            <p id="gameOverReason" class="text-sm sm:text-base text-slate-600 mb-6">หมดเวลาในการตอบคำถาม</p>
+
+            <!-- New High Score Banner -->
+            <div id="newHighScoreBanner" class="hidden mb-5 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs sm:text-sm font-bold shadow-md animate-bounce">
+                <i class="fa-solid fa-crown"></i> สถิติสูงสุดใหม่ (New High Score)!
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-6">
+                <div class="bg-amber-50/90 p-3.5 rounded-2xl border border-amber-200">
+                    <div class="text-xs text-slate-500 font-medium mb-1">คะแนนรวม</div>
+                    <div id="finalScore" class="text-2xl sm:text-3xl font-extrabold text-orange-600">0</div>
+                </div>
+                <div class="bg-emerald-50/90 p-3.5 rounded-2xl border border-emerald-200">
+                    <div class="text-xs text-slate-500 font-medium mb-1">คอมโบสูงสุด</div>
+                    <div id="finalMaxCombo" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">0</div>
+                </div>
+                <div class="bg-indigo-50/90 p-3.5 rounded-2xl border border-indigo-200">
+                    <div class="text-xs text-slate-500 font-medium mb-1">จำนวนคำ</div>
+                    <div id="finalWordCount" class="text-2xl sm:text-3xl font-extrabold text-indigo-600">0</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <button onclick="startGame()" class="flex-1 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-base shadow-lg shadow-orange-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> เล่นอีกครั้ง
+                </button>
+                <button onclick="returnToMenu()" class="flex-1 py-3.5 px-5 rounded-2xl bg-white hover:bg-amber-50 text-slate-700 font-bold text-base border-2 border-amber-200 transition active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-house"></i> เปลี่ยนโหมด
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-4xl mx-auto px-4 py-3 text-center text-xs text-amber-900/60">
+        เกมต่อคำภาษาไทย • ฝึกไหวพริบและคลังคำศัพท์ภาษาไทยอย่างสร้างสรรค์
+    </footer>
+
+    <!-- ==================== RULES MODAL ==================== -->
+    <div id="rulesModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-amber-200 animate-pop-in">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+                <h3 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-orange-500"></i> กติกาการเล่นต่อคำหรรษา
+                </h3>
+                <button onclick="toggleRulesModal(false)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3.5 text-sm text-slate-600 leading-relaxed max-h-[65vh] overflow-y-auto pr-1">
+                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200/80">
+                    <h4 class="font-bold text-amber-900 mb-1">1. โหมดต่อพยางค์สุดท้าย (แนะนำ)</h4>
+                    <p>นำ <strong>"พยางค์สุดท้าย"</strong> ของคำก่อนหน้า มาเป็น <strong>"พยางค์แรก"</strong> ของคำใหม่ เช่น:<br>
+                    <span class="inline-block mt-1 font-semibold text-orange-700 bg-white px-2 py-0.5 rounded border border-amber-200">
+                        โรง<span class="underline">เรียน</span> &rarr; <span class="underline">เรียน</span><span class="text-emerald-600">รู้</span> &rarr; <span class="text-emerald-600">รู้</span>จัก
+                    </span></p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-orange-50 border border-orange-200/80">
+                    <h4 class="font-bold text-orange-900 mb-1">2. โหมดต่อตัวอักษรสุดท้าย</h4>
+                    <p>นำ <strong>"พยัญชนะตัวสุดท้าย"</strong> (ไม่นับสระลอยท้ายหรือตัวการันต์) มาขึ้นต้นคำใหม่ เช่น:<br>
+                    <span class="inline-block mt-1 font-semibold text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200">
+                        มะม่ว<span class="underline">ง</span> &rarr; <span class="underline">ง</span>ูเห่า &rarr; เ<span class="underline">ห</span>่าฉลาม
+                    </span></p>
+                </div>
+
+                <ul class="list-disc pl-5 space-y-1.5">
+                    <li><strong>ห้ามใช้คำซ้ำ:</strong> คำที่ถูกใช้ไปแล้วในรอบนั้นจะไม่สามารถนำมาตอบซ้ำได้</li>
+                    <li><strong>ภาษาไทยเท่านั้น:</strong> ต้องพิมพ์ด้วยตัวอักษรภาษาไทยที่ถูกต้อง ไม่เว้นวรรค</li>
+                    <li><strong>ระบบคอมโบ:</strong> ตอบได้รวดเร็วต่อเนื่องจะได้รับโบนัสคะแนนคอมโบเพิ่มขึ้น!</li>
+                    <li><strong>คำใบ้ (Hint):</strong> ใช้ได้สูงสุด 3 ครั้งต่อเกม (หัก 15 คะแนน) หากนึกคำไม่ออก</li>
+                </ul>
+            </div>
+
+            <button onclick="toggleRulesModal(false)" class="mt-5 w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition">
+                เข้าใจแล้ว ลุยเลย!
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT GAME ENGINE & DICTIONARY ==================== -->
+    <script>
+        /**
+         * 1. คลังคำศัพท์ภาษาไทยขนาดใหญ่ (มากกว่า 480+ คำ)
+         * โครงสร้าง: [คำศัพท์, พยางค์แรก, พยางค์สุดท้าย, หมวดหมู่/คำใบ้]
+         * ออกแบบให้เชื่อมโยงกันได้เป็นลูกโซ่ไม่รู้จบทั้งโหมดต่อพยางค์และต่อตัวอักษร
+         */
+        const THAI_DICTIONARY_RAW = [
+            // หมวดผลไม้และอาหาร
+            ["มะม่วง", "มะ", "ม่วง", "ผลไม้รสเปรี้ยวอมหวาน"],
+            ["ม่วงคราม", "ม่วง", "คราม", "โทนสีน้ำเงินอมม่วง"],
+            ["ครามน้ำเงิน", "คราม", "เงิน", "สีโทนเข้ม"],
+            ["เงินทอง", "เงิน", "ทอง", "ทรัพย์สินมีค่า"],
+            ["ทองคำ", "ทอง", "คำ", "โลหะมีค่าสีเหลืองอร่าม"],
+            ["คำถาม", "คำ", "ถาม", "ประโยคที่ต้องการคำตอบ"],
+            ["ถามไถ่", "ถาม", "ไถ่", "พูดคุยสอบถามสารทุกข์สุกดิบ"],
+            ["ไถ่ถอน", "ไถ่", "ถอน", "นำเงินไปไถ่ของคืน"],
+            ["ถอนหายใจ", "ถอน", "ใจ", "อาการระบายลมหายใจยาว"],
+            ["ใจดี", "ใจ", "ดี", "มีเมตตากรุณา"],
+            ["ดีใจ", "ดี", "ใจ", "รู้สึกยินดีปรีดา"],
+            ["ใจเย็น", "ใจ", "เย็น", "ไม่ฉุนเฉียว สุขุม"],
+            ["เย็นชา", "เย็น", "ชา", "ไม่แสดงความรู้สึกยินดียินร้าย"],
+            ["ชาเขียว", "ชา", "เขียว", "เครื่องดื่มยอดนิยมจากใบชา"],
+            ["เขียวขจี", "เขียว", "จี", "สีเขียวสดใสของต้นไม้ใบหญ้า"],
+            ["มะพร้าว", "มะ", "พร้าว", "ผลไม้เปลือกแข็งมีน้ำหวานข้างใน"],
+            ["มะละกอ", "มะ", "กอ", "ผลไม้ใช้ทำส้มตำ"],
+            ["มะนาว", "มะ", "นาว", "ผลไม้รสเปรี้ยวจัด"],
+            ["มะขาม", "มะ", "ขาม", "ผลไม้ฝักยาวรสเปรี้ยวอมหวาน"],
+            ["มะเขือ", "มะ", "เขือ", "ผักสวนครัวผลกลมหรือยาว"],
+            ["มะลิ", "มะ", "ลิ", "ดอกไม้สีขาวกลิ่นหอมวันแม่"],
+            ["อาหาร", "อา", "หาร", "สิ่งที่กินเพื่อหล่อเลี้ยงร่างกาย"],
+            ["หารือ", "หา", "รือ", "ปรึกษาพูดคุยร่วมกัน"],
+            ["ข้าวผัด", "ข้าว", "ผัด", "อาหารจานเดียวยอดฮิต"],
+            ["ผัดไทย", "ผัด", "ไทย", "ก๋วยเตี๋ยวผัดขึ้นชื่อของไทย"],
+            ["ประเทศไทย", "ประ", "ไทย", "ดินแดนแห่งรอยยิ้ม"],
+            ["ไทยแท้", "ไทย", "แท้", "ความเป็นไทยดั้งเดิม"],
+            ["แท้จริง", "แท้", "จริง", "ความจริงแท้แน่นอน"],
+            ["จริงใจ", "จริง", "ใจ", "ซื่อสัตย์ ไม่เสแสร้ง"],
+            ["ข้าวเหนียว", "ข้าว", "เหนียว", "ข้าวที่นิยมกินกับส้มตำและมะม่วง"],
+            ["เหนียวแน่น", "เหนียว", "แน่น", "มั่นคง กลมเกลียวไม่แยกจากกัน"],
+            ["แน่นหนา", "แน่น", "หนา", "แข็งแรง มั่นคงปลอดภัย"],
+            ["หนาแน่น", "หนา", "แน่น", "เบียดเสียด คับคั่ง"],
+            ["ต้มยำ", "ต้ม", "ยำ", "แกงรสแซ่บชื่อดังของไทย"],
+            ["ยำใหญ่", "ยำ", "ใหญ่", "ชื่ออาหารไทยโบราณในกาพย์เห่เรือ"],
+            ["ใหญ่โต", "ใหญ่", "โต", "มีขนาดมหึมา กว้างขวาง"],
+            ["โตเต็มวัย", "โต", "วัย", "เจริญเติบโตเต็มที่"],
+            ["วัยรุ่น", "วัย", "รุ่น", "ช่วงอายุระหว่างเด็กกับผู้ใหญ่"],
+            ["รุ่นพี่", "รุ่น", "พี่", "ผู้ที่เรียนหรือทำงานมาก่อน"],
+            ["พี่น้อง", "พี่", "น้อง", "ญาติร่วมสายโลหิต"],
+            ["น้องสาว", "น้อง", "สาว", "น้องที่เป็นผู้หญิง"],
+            ["สวยงาม", "สวย", "งาม", "งดงาม น่ามอง"],
+            ["งามตา", "งาม", "ตา", "ดูแล้วเจริญตาเจริญใจ"],
+            ["ตากลม", "ตา", "กลม", "ดวงตากลมโตน่ารัก"],
+            ["กลมกล่อม", "กลม", "กล่อม", "รสชาติพอดีอร่อยลงตัว"],
+            ["กล่อมเกลา", "กล่อม", "เกลา", "อบรมสั่งสอนให้ดีขึ้น"],
+            ["ขนมหวาน", "ขะ", "หวาน", "ของกินหลังอาหารคาว"],
+            ["หวานใจ", "หวาน", "ใจ", "คำเรียกคนรักอย่างเอ็นดู"],
+            ["หวานเย็น", "หวาน", "เย็น", "ขนมน้ำแข็งไสราดน้ำเชื่อม"],
+            ["แกงเขียวหวาน", "แกง", "หวาน", "แกงกะทิสีเขียวรสกลมกล่อม"],
+            ["ก๋วยเตี๋ยว", "ก๋วย", "เตี๋ยว", "อาหารเส้นยอดนิยม"],
+            ["ส้มตำ", "ส้ม", "ตำ", "อาหารอีสานรสแซ่บทำจากมะละกอ"],
+            ["ตำรา", "ตำ", "รา", "หนังสือสำหรับค้นคว้าเล่าเรียน"],
+            ["ราชา", "รา", "ชา", "พระมหากษัตริย์ ผู้เป็นใหญ่"],
+            ["ทุเรียน", "ทุ", "เรียน", "ราชาแห่งผลไม้มีหนามแหลม"],
+            ["โรงเรียน", "โรง", "เรียน", "สถานศึกษาเล่าเรียน"],
+            ["เรียนรู้", "เรียน", "รู้", "ศึกษาหาความรู้เพิ่มเติม"],
+            ["รู้จัก", "รู้", "จัก", "คุ้นเคย เข้าใจ"],
+            ["จักรวาล", "จัก", "วาล", "ห้วงอวกาศอันกว้างใหญ่ไพศาล"],
+            ["มังคุด", "มัง", "คุด", "ราชินีแห่งผลไม้เปลือกสีม่วง"],
+            ["มังกร", "มัง", "กร", "สัตว์ในตำนานพ่นไฟได้"],
+            ["ลำไย", "ลำ", "ไย", "ผลไม้เปลือกสีน้ำตาลเนื้อใสหวาน"],
+            ["แตงโม", "แตง", "โม", "ผลไม้ลูกใหญ่เนื้อสีแดงฉ่ำน้ำ"],
+            ["โมโห", "โม", "โห", "โกรธ ฉุนเฉียว"],
+            ["สับปะรด", "สับ", "รด", "ผลไม้มีตารอบผลรสเปรี้ยวหวาน"],
+            ["รดน้ำ", "รด", "น้ำ", "เทหรือฉีดน้ำให้ต้นไม้"],
+            ["น้ำใจ", "น้ำ", "ใจ", "ความเอื้อเฟื้อเผื่อแผ่"],
+            ["น้ำตก", "น้ำ", "ตก", "สายน้ำที่ไหลตกลงมาจากหน้าผา"],
+            ["ตกใจ", "ตก", "ใจ", "อาการสะดุ้งหรือตื่นตระหนก"],
+            ["น้ำแข็ง", "น้ำ", "แข็ง", "น้ำที่เย็นจัดจนกลายเป็นก้อน"],
+            ["แข็งแรง", "แข็ง", "แรง", "มีพละกำลัง สุขภาพดี"],
+            ["แรงงาน", "แรง", "งาน", "กำลังคนในการทำงาน"],
+            ["งานบ้าน", "งาน", "บ้าน", "หน้าที่ดูแลทำความสะอาดบ้าน"],
+            ["บ้านเรือน", "บ้าน", "เรือน", "ที่อยู่อาศัยของมนุษย์"],
+            ["เรือนไทย", "เรือน", "ไทย", "บ้านทรงไทยโบราณยกพื้นสูง"],
+            ["กล้วยหอม", "กล้วย", "หอม", "ผลไม้สีเหลืองกลิ่นหอม"],
+            ["หอมหวาน", "หอม", "หวาน", "มีกลิ่นหอมและรสหวาน"],
+            ["ชมพู่", "ชม", "พู่", "ผลไม้ทรงระฆังเนื้อกรอบ"],
+            ["ฝรั่ง", "ฝะ", "หรั่ง", "ผลไม้เปลือกเขียวเนื้อกรอบวิตามินซีสูง"],
+            ["เงาะ", "เงาะ", "เงาะ", "ผลไม้เปลือกแดงมีขนรอบผล"],
+            ["น้อยหน่า", "น้อย", "หน่า", "ผลไม้เปลือกเป็นตุ่มเนื้อหวาน"],
+            ["ละมุด", "ละ", "มุด", "ผลไม้เปลือกสีน้ำตาลเนื้อหวานฉ่ำ"],
+            ["ส้มโอ", "ส้ม", "โอ", "ผลไม้ตระกูลส้มลูกใหญ่"],
+            ["โอ่อ่า", "โอ่", "อ่า", "หรูหรา ใหญ่โตสง่างาม"],
+
+            // หมวดสัตว์น่ารักและสัตว์ป่า
+            ["ช้างเผือก", "ช้าง", "เผือก", "ช้างมงคลคู่บารมี"],
+            ["เผือกมัน", "เผือก", "มัน", "พืชหัวใต้ดินต้มกินอร่อย"],
+            ["มันสมอง", "มัน", "สมอง", "สติปัญญา ความฉลาด"],
+            ["สมองกล", "สะ", "กล", "คอมพิวเตอร์หรือเครื่องจักรอัจฉริยะ"],
+            ["กลไก", "กล", "ไก", "ระบบการทำงานของเครื่องจักร"],
+            ["ไก่แจ้", "ไก่", "แจ้", "ไก่ตัวเล็กสวยงามเสียงขันไพเราะ"],
+            ["เสือโคร่ง", "เสือ", "โคร่ง", "สัตว์ป่ากินเนื้อลายพาดกลอน"],
+            ["สิงโต", "สิง", "โต", "เจ้าป่ามีแผงคอสง่างาม"],
+            ["กระต่าย", "กระ", "ต่าย", "สัตว์หูยาวขนปุยชอบกินแครอท"],
+            ["กระรอก", "กระ", "รอก", "สัตว์ฟันแทะหางพวงอาศัยบนต้นไม้"],
+            ["กระแต", "กระ", "แต", "สัตว์คล้ายกระรอกหน้าแหลม"],
+            ["กระจก", "กระ", "จก", "แผ่นแก้วใสสะท้อนเงา"],
+            ["กระดาษ", "กระ", "ดาษ", "วัสดุแผ่นบางสำหรับเขียนหนังสือ"],
+            ["กระเป๋า", "กระ", "เป๋า", "ของใช้สำหรับใส่สิ่งของพกพา"],
+            ["เป็ดน้ำ", "เป็ด", "น้ำ", "นกน้ำปากแบนว่ายน้ำเก่ง"],
+            ["นกยูง", "นก", "ยูง", "นกสวยงามรำแพนหางอลังการ"],
+            ["นกแก้ว", "นก", "แก้ว", "นกสีสันสดใสเลียนเสียงพูดได้"],
+            ["แก้วน้ำ", "แก้ว", "น้ำ", "ภาชนะสำหรับใส่น้ำดื่ม"],
+            ["นกพิราบ", "นก", "ราบ", "นกสัญลักษณ์แห่งสันติภาพ"],
+            ["ปลาทู", "ปลา", "ทู", "ปลาทะเลหน้างอคอหักของอร่อย"],
+            ["ปลาวาฬ", "ปลา", "วาฬ", "สัตว์เลี้ยงลูกด้วยนมขนาดยักษ์ในทะเล"],
+            ["ปลาฉลาม", "ปลา", "ฉลาม", "นักล่าแห่งท้องทะเล"],
+            ["ปลาโลมา", "ปลา", "มา", "สัตว์ทะเลแสนรู้เป็นมิตรกับมนุษย์"],
+            ["มาลัย", "มา", "ลัย", "ดอกไม้ร้อยเป็นพวงสำหรับไหว้"],
+            ["ม้าน้ำ", "ม้า", "น้ำ", "ปลาทะเลขนาดเล็กหัวคล้ายม้า"],
+            ["ม้าลาย", "ม้า", "ลาย", "สัตว์ทุ่งหญ้าลายขาวดำ"],
+            ["ลายมือ", "ลาย", "มือ", "เส้นบนฝ่ามือหรือตัวหนังสือที่เขียน"],
+            ["มือถือ", "มือ", "ถือ", "โทรศัพท์เคลื่อนที่พกพา"],
+            ["ถือศีล", "ถือ", "ศีล", "ประพฤติปฏิบัติตามข้อห้ามทางศาสนา"],
+            ["ผีเสื้อ", "ผี", "เสื้อ", "แมลงปีกสวยงามแปลงร่างมาจากหนอน"],
+            ["เสื้อผ้า", "เสื้อ", "ผ้า", "เครื่องนุ่งห่มของมนุษย์"],
+            ["ผ้าไหม", "ผ้า", "ไหม", "ผ้าทอเนื้อละเอียดเงางามของไทย"],
+            ["ไหมพรม", "ไหม", "พรม", "เส้นด้ายนุ่มสำหรับถักเสื้อกันหนาว"],
+            ["พรมแดน", "พรม", "แดน", "เขตแดนระหว่างประเทศ"],
+            ["แดนดิน", "แดน", "ดิน", "ผืนแผ่นดิน อาณาเขต"],
+            ["ดินสอ", "ดิน", "สอ", "อุปกรณ์เครื่องเขียนไส้แกรไฟต์"],
+            ["ดินเหนียว", "ดิน", "เหนียว", "ดินเนื้อละเอียดใช้ปั้นเครื่องปั้นดินเผา"],
+            ["เต่าทอง", "เต่า", "ทอง", "แมลงปีกแข็งตัวเล็กมีจุดดำ"],
+            ["งูเห่า", "งู", "เห่า", "งูพิษแผ่แม่เบี้ยได้"],
+            ["เห่าฉลาม", "เห่า", "ฉลาม", "ปลาฉลามชนิดหนึ่งอาศัยตามแนวปะการัง"],
+            ["จระเข้", "จอ", "เข้", "สัตว์เลื้อยคลานครึ่งบกครึ่งน้ำขนาดใหญ่"],
+            ["หมีแพนด้า", "หมี", "ด้า", "หมีสีขาวดำน่ารักกินไผ่เป็นอาหาร"],
+            ["กวางป่า", "กวาง", "ป่า", "สัตว์กินพืชมีเขาสวยงาม"],
+            ["ป่าไม้", "ป่า", "ไม้", "พื้นที่ที่มีต้นไม้ขึ้นหนาแน่น"],
+            ["ไม้บรรทัด", "ไม้", "ทัด", "อุปกรณ์วัดความยาวและขีดเส้นตรง"],
+            ["ไม้กวาด", "ไม้", "กวาด", "อุปกรณ์ทำความสะอาดพื้นบ้าน"],
+            ["ลิงลม", "ลิง", "ลม", "สัตว์เลี้ยงลูกด้วยนมตาโตเคลื่อนไหวช้า"],
+            ["ลมหนาว", "ลม", "หนาว", "สายลมเย็นในฤดูหนาว"],
+            ["หนาวสั่น", "หนาว", "สั่น", "อาการตัวสั่นเพราะอากาศเย็นจัด"],
+            ["สั่นสะเทือน", "สั่น", "เทือน", "ไหวสะเทือน เลื่อนลั่น"],
+
+            // หมวดสถานที่และท่องเที่ยว
+            ["ทะเล", "ทะ", "เล", "ผืนน้ำเค็มกว้างใหญ่ไพศาล"],
+            ["ทะเลทราย", "ทะ", "ทราย", "พื้นที่แห้งแล้งปกคลุมด้วยทราย"],
+            ["ทรายแก้ว", "ทราย", "แก้ว", "หาดทรายขาวละเอียดราวกับแก้ว"],
+            ["ภูเขา", "ภู", "เขา", "พื้นที่สูงชันตามธรรมชาติ"],
+            ["เขาวงกต", "เขา", "กต", "ทางเดินซับซ้อนที่หาทางออกยาก"],
+            ["วัดวาอาราม", "วัด", "ราม", "สถานที่ประกอบพิธีกรรมทางศาสนา"],
+            ["ตลาดน้ำ", "ตะ", "น้ำ", "ตลาดค้าขายริมคลองเอกลักษณ์ไทย"],
+            ["โรงพยาบาล", "โรง", "บาล", "สถานที่รักษาผู้ป่วย"],
+            ["มหาวิทยาลัย", "มะ", "ลัย", "สถาบันอุดมศึกษาระดับปริญญา"],
+            ["สนามบิน", "สะ", "บิน", "สถานที่ขึ้นลงของเครื่องบิน"],
+            ["บินหลา", "บิน", "หลา", "นกกางเขนดงเสียงไพเราะแห่งปักษ์ใต้"],
+            ["ห้องสมุด", "ห้อง", "สมุด", "สถานที่รวบรวมหนังสือให้ค้นคว้า"],
+            ["สมุดบันทึก", "สะ", "ทึก", "สมุดสำหรับจดเรื่องราวประจำวัน"],
+            ["สวนสัตว์", "สวน", "สัตว์", "สถานที่จัดแสดงสัตว์หลากหลายชนิด"],
+            ["สวนสนุก", "สวน", "สนุก", "สถานที่รวมเครื่องเล่นสร้างความบันเทิง"],
+            ["สนุกสนาน", "สะ", "นาน", "รื่นเริง บันเทิงใจ"],
+            ["นานวัน", "นาน", "วัน", "เวลาที่ผ่านไปเรื่อยๆ"],
+            ["วันหยุด", "วัน", "หยุด", "วันที่ไม่ต้องไปเรียนหรือทำงาน"],
+            ["หยุดพัก", "หยุด", "พัก", "หยุดเพื่อผ่อนคลายความเหนื่อยล้า"],
+            ["พักผ่อน", "พัก", "ผ่อน", "การหยุดพักให้หายเหนื่อย"],
+            ["ผ่อนคลาย", "ผ่อน", "คลาย", "รู้สึกสบาย หายตึงเครียด"],
+            ["คลายเครียด", "คลาย", "เครียด", "ทำให้จิตใจปลอดโปร่งสบายใจ"],
+            ["วันเกิด", "วัน", "เกิด", "วันที่ลืมตาดูโลก"],
+            ["เกิดเหตุ", "เกิด", "เหตุ", "มีเหตุการณ์เกิดขึ้น"],
+            ["เหตุผล", "เหตุ", "ผล", "หลักการและความสมเหตุสมผล"],
+            ["ผลไม้", "ผล", "ไม้", "ผลิตผลของพืชที่กินได้"],
+            ["พิพิธภัณฑ์", "พิ", "ภัณฑ์", "สถานที่เก็บรวบรวมและจัดแสดงโบราณวัตถุ"],
+            ["สถานีรถไฟ", "สะ", "ไฟ", "จุดจอดรับส่งผู้โดยสารรถไฟ"],
+            ["ไฟฟ้า", "ไฟ", "ฟ้า", "พลังงานที่ให้แสงสว่างและขับเคลื่อนเครื่องใช้"],
+            ["ฟ้าใส", "ฟ้า", "ใส", "ท้องฟ้าปลอดโปร่งไร้เมฆฝน"],
+            ["ใสสะอาด", "ใส", "อาด", "บริสุทธิ์ ปราศจากสิ่งสกปรก"],
+            ["ร้านอาหาร", "ร้าน", "หาร", "สถานที่จำหน่ายอาหารและเครื่องดื่ม"],
+            ["ชายหาด", "ชาย", "หาด", "บริเวณริมทะเลที่เป็นทรายหรือกรวด"],
+            ["เกาะสมุย", "เกาะ", "มุย", "เกาะท่องเที่ยวชื่อดังในจังหวัดสุราษฎร์ธานี"],
+            ["เชียงใหม่", "เชียง", "ใหม่", "จังหวัดท่องเที่ยวสำคัญทางภาคเหนือ"],
+            ["ใหม่เอี่ยม", "ใหม่", "เอี่ยม", "ของใหม่แกะกล่องยังไม่เคยใช้"],
+            ["อยุธยา", "อะ", "ยา", "เมืองมรดกโลกอดีตราชธานีของไทย"],
+            ["กรุงเทพ", "กรุง", "เทพ", "เมืองหลวงของประเทศไทย"],
+            ["เทพนิยาย", "เทพ", "ยาย", "เรื่องเล่าปรัมปราเกี่ยวกับเทวดาและเวทมนตร์"],
+            ["ยายแก่", "ยาย", "แก่", "หญิงสูงวัย"],
+            ["แก้ไข", "แก้", "ไข", "ปรับปรุงเปลี่ยนแปลงให้ถูกต้อง"],
+            ["ไข่มุก", "ไข่", "มุก", "อัญมณีล้ำค่าที่เกิดจากหอยมุก"],
+
+            // หมวดความรู้สึก คำกริยา และคำคุณศัพท์
+            ["ความรัก", "ความ", "รัก", "ความรู้สึกรักใคร่ผูกพัน"],
+            ["รักแท้", "รัก", "แท้", "ความรักที่มั่นคงและจริงใจ"],
+            ["ความสุข", "ความ", "สุข", "ความสบายกายสบายใจ"],
+            ["สุขสันต์", "สุข", "สันต์", "รื่นเริง เบิกบานใจ"],
+            ["ความหวัง", "ความ", "หวัง", "ความปรารถนาให้สิ่งดีๆ เกิดขึ้น"],
+            ["หวังดี", "หวัง", "ดี", "ปรารถนาดีต่อผู้อื่น"],
+            ["ความฝัน", "ความ", "ฝัน", "จินตนาการหรือเป้าหมายในชีวิต"],
+            ["ฝันดี", "ฝัน", "ดี", "คำอวยพรก่อนเข้านอน"],
+            ["ความจำ", "ความ", "จำ", "ความสามารถในการจดจำเรื่องราว"],
+            ["จำเป็น", "จำ", "เป็น", "สิ่งที่ขาดไม่ได้ ต้องมีหรือต้องทำ"],
+            ["เป็นห่วง", "เป็น", "ห่วง", "มีความกังวลและเอาใจใส่"],
+            ["ห่วงใย", "ห่วง", "ใย", "มีใจผูกพันและคอยดูแล"],
+            ["ความจริง", "ความ", "จริง", "ข้อเท็จจริงที่พิสูจน์ได้"],
+            ["ความดี", "ความ", "ดี", "การกระทำที่ถูกต้องเหมาะสม"],
+            ["ความพยายาม", "ความ", "ยาม", "ความตั้งใจมุ่งมั่นไม่ย่อท้อ"],
+            ["ยามเช้า", "ยาม", "เช้า", "ช่วงเวลาเริ่มต้นของวันใหม่"],
+            ["เช้าตรู่", "เช้า", "ตรู่", "เวลาเช้ามืดที่ดวงอาทิตย์กำลังขึ้น"],
+            ["กำลังใจ", "กำ", "ใจ", "พลังใจที่ช่วยให้สู้ต่อไป"],
+            ["คิดถึง", "คิด", "ถึง", "ระลึกถึงด้วยความผูกพัน"],
+            ["ถึงแม้", "ถึง", "แม้", "คำเชื่อมแสดงความขัดแย้ง"],
+            ["แม้ว่า", "แม้", "ว่า", "ถึงแม้จะเป็นเช่นนั้น"],
+            ["ว่ายน้ำ", "ว่าย", "น้ำ", "การเคลื่อนที่ในน้ำด้วยแขนและขา"],
+            ["ขอบคุณ", "ขอบ", "คุณ", "คำกล่าวแสดงความซาบซึ้งใจ"],
+            ["คุณค่า", "คุณ", "ค่า", "ประโยชน์และความสำคัญในตัวเอง"],
+            ["ค่าใช้จ่าย", "ค่า", "จ่าย", "เงินที่ต้องเสียไปในการซื้อหรือบริการ"],
+            ["จ่ายตลาด", "จ่าย", "ลาด", "ไปซื้อกับข้าวและของสดที่ตลาด"],
+            ["ขอโทษ", "ขอ", "โทษ", "คำกล่าวเมื่อทำผิดพลาด"],
+            ["โทษทัณฑ์", "โทษ", "ทัณฑ์", "การลงโทษตามความผิด"],
+            ["ยินดี", "ยิน", "ดี", "เต็มใจ ดีใจ"],
+            ["เสียใจ", "เสีย", "ใจ", "เศร้าโศก ผิดหวัง"],
+            ["เสียสละ", "เสีย", "สละ", "ยอมสละประโยชน์ส่วนตนเพื่อส่วนรวม"],
+            ["สละสิทธิ์", "สะ", "สิทธิ์", "ไม่ขอรับสิทธิ์ที่มีอยู่"],
+            ["ตื่นเต้น", "ตื่น", "เต้น", "รู้สึกเร้าใจ ใจเต้นแรง"],
+            ["เต้นรำ", "เต้น", "รำ", "การเคลื่อนไหวร่างกายตามจังหวะดนตรี"],
+            ["รำไทย", "รำ", "ไทย", "ศิลปะการแสดงนาฏศิลป์ของไทย"],
+            ["ประทับใจ", "ประ", "ใจ", "รู้สึกชื่นชอบและจดจำไม่ลืม"],
+            ["ภูมิใจ", "ภูมิ", "ใจ", "รู้สึกปลาบปลื้มในความสำเร็จ"],
+            ["อบอุ่น", "อบ", "อุ่น", "รู้สึกสบายใจ ปลอดภัยและเป็นกันเอง"],
+            ["อุ่นใจ", "อุ่น", "ใจ", "คลายกังวล รู้สึกวางใจ"],
+            ["สดใส", "สด", "ใส", "ร่าเริง แจ่มใส มีชีวิตชีวา"],
+            ["ร่าเริง", "ร่า", "เริง", "สนุกสนาน เบิกบานใจ"],
+            ["ฉลาด", "ฉะ", "หลาด", "มีสติปัญญาดี ไหวพริบดี"],
+            ["ขยัน", "ขะ", "หยัน", "ตั้งใจทำงานอย่างสม่ำเสมอ"],
+            ["อดทน", "อด", "ทน", "เข้มแข็งไม่ย่อท้อต่อความยากลำบาก"],
+            ["ทนทาน", "ทน", "ทาน", "แข็งแรง ใช้งานได้นานไม่พังง่าย"],
+            ["ทานตะวัน", "ทาน", "วัน", "ดอกไม้สีเหลืองหันหน้าเข้าหาดวงอาทิตย์"],
+            ["วันเวลา", "วัน", "ลา", "ช่วงเวลาที่ผ่านไป"],
+            ["ลาก่อน", "ลา", "ก่อน", "คำกล่าวอำลาเมื่อจากกัน"],
+            ["ก่อนหน้า", "ก่อน", "หน้า", "เวลาหรือลำดับที่มาก่อน"],
+            ["หน้าต่าง", "หน้า", "ต่าง", "ช่องเปิดบนผนังบ้านสำหรับรับลมและแสง"],
+            ["ต่างจังหวัด", "ต่าง", "หวัด", "จังหวัดอื่นๆ ที่ไม่ใช่เมืองหลวง"],
+            ["หวัดดี", "หวัด", "ดี", "คำทักทายแบบเป็นกันเอง"],
+            ["กล้าหาญ", "กล้า", "หาญ", "ไม่เกรงกลัวต่ออันตราย"],
+            ["หาญกล้า", "หาญ", "กล้า", "องอาจ กล้าเผชิญหน้า"],
+            ["กล้าแสดงออก", "กล้า", "ออก", "มั่นใจในการพูดหรือทำต่อหน้าผู้อื่น"],
+            ["ออกกำลังกาย", "ออก", "กาย", "การเคลื่อนไหวร่างกายเพื่อสุขภาพ"],
+            ["กายภาพ", "กาย", "ภาพ", "ลักษณะทางร่างกายหรือวัตถุ"],
+            ["ภาพวาด", "ภาพ", "วาด", "งานศิลปะที่เกิดจากการวาดเขียน"],
+            ["วาดเขียน", "วาด", "เขียน", "วิชาศิลปะเกี่ยวกับการวาดภาพ"],
+            ["เขียนหนังสือ", "เขียน", "สือ", "การถ่ายทอดเรื่องราวเป็นตัวอักษร"],
+            ["สื่อสาร", "สื่อ", "สาร", "การส่งข้อมูลข่าวสารให้เข้าใจตรงกัน"],
+            ["สารคดี", "สา", "คดี", "รายการหรือหนังสือที่ให้ความรู้จากเรื่องจริง"],
+
+            // หมวดธรรมชาติ ดาราศาสตร์ และสิ่งของรอบตัว
+            ["ดวงอาทิตย์", "ดวง", "ทิตย์", "ดาวฤกษ์ศูนย์กลางระบบสุริยะ"],
+            ["ดวงจันทร์", "ดวง", "จันทร์", "บริวารของโลกที่ส่องสว่างยามค่ำคืน"],
+            ["วันจันทร์", "วัน", "จันทร์", "วันแรกของการทำงานในสัปดาห์"],
+            ["ดวงดาว", "ดวง", "ดาว", "วัตถุท้องฟ้าที่ส่องแสงระยิบระยับ"],
+            ["ดาวตก", "ดาว", "ตก", "สะเก็ดดาวที่ลุกไหม้ในชั้นบรรยากาศ"],
+            ["ดาวเคราะห์", "ดาว", "เคราะห์", "บริวารที่โคจรรอบดวงอาทิตย์"],
+            ["สายรุ้ง", "สาย", "รุ้ง", "แถบสี 7 สีบนท้องฟ้าหลังฝนตก"],
+            ["สายฝน", "สาย", "ฝน", "หยาดน้ำที่ตกลงมาจากก้อนเมฆ"],
+            ["ฝนตก", "ฝน", "ตก", "ปรากฏการณ์น้ำฝนหล่นจากฟ้า"],
+            ["ก้อนเมฆ", "ก้อน", "เมฆ", "ไอน้ำที่รวมตัวกันลอยอยู่บนฟ้า"],
+            ["ท้องฟ้า", "ท้อง", "ฟ้า", "ห้วงอากาศเบื้องบนเหนือพื้นโลก"],
+            ["แสงแดด", "แสง", "แดด", "แสงสว่างและความร้อนจากดวงอาทิตย์"],
+            ["แดดร้อน", "แดด", "ร้อน", "อากาศอบอ้าวจากแสงอาทิตย์"],
+            ["ร้อนแรง", "ร้อน", "แรง", "ดุเดือด รุนแรง"],
+            ["สายลม", "สาย", "ลม", "อากาศที่เคลื่อนที่พัดผ่าน"],
+            ["แม่น้ำ", "แม่", "น้ำ", "ลำน้ำสายใหญ่ไหลลงสู่ทะเล"],
+            ["แม่พิมพ์", "แม่", "พิมพ์", "แบบสำหรับหล่อหรือกดให้เป็นรูปร่าง"],
+            ["พิมพ์ดีด", "พิมพ์", "ดีด", "เครื่องพิมพ์เอกสารในยุคก่อน"],
+            ["ดีดกีตาร์", "ดีด", "ตาร์", "การเล่นเครื่องดนตรีประเภทสาย"],
+            ["นาฬิกา", "นา", "กา", "เครื่องมือสำหรับดูเวลา"],
+            ["กาแฟ", "กา", "แฟ", "เครื่องดื่มยอดนิยมยามเช้า"],
+            ["แฟชั่น", "แฟ", "ชั่น", "สมัยนิยมด้านการแต่งกาย"],
+            ["หนังสือ", "หนัง", "สือ", "สิ่งพิมพ์ที่รวบรวมความรู้หรือเรื่องราว"],
+            ["โทรศัพท์", "โท", "ศัพท์", "อุปกรณ์สื่อสารทางไกล"],
+            ["คอมพิวเตอร์", "คอม", "เตอร์", "อุปกรณ์อิเล็กทรอนิกส์ประมวลผลข้อมูล"],
+            ["รถยนต์", "รถ", "ยนต์", "ยานพาหนะขับเคลื่อนด้วยเครื่องยนต์"],
+            ["รถไฟ", "รถ", "ไฟ", "ยานพาหนะวิ่งบนรางเหล็ก"],
+            ["รถจักรยาน", "รถ", "ยาน", "ยานพาหนะสองล้อใช้แรงถีบ"],
+            ["ยานอวกาศ", "ยาน", "กาศ", "พาหนะสำหรับเดินทางออกไปนอกโลก"],
+            ["อากาศดี", "อา", "ดี", "สภาพอากาศบริสุทธิ์สดชื่น"],
+            ["เครื่องบิน", "เครื่อง", "บิน", "ยานพาหนะที่บินได้บนท้องฟ้า"],
+            ["เรือใบ", "เรือ", "ใบ", "เรือที่แล่นด้วยแรงลมปะทะใบเรือ"],
+            ["ใบไม้", "ใบ", "ไม้", "ส่วนประกอบสีเขียวของต้นไม้"],
+            ["ดอกไม้", "ดอก", "ไม้", "ส่วนของพืชที่มีสีสันสวยงามและกลิ่นหอม"],
+            ["ดอกบัว", "ดอก", "บัว", "ไม้น้ำศักดิ์สิทธิ์สัญลักษณ์ทางพุทธศาสนา"],
+            ["บัวลอย", "บัว", "ลอย", "ขนมไทยทำจากแป้งปั้นเม็ดกลมในน้ำกะทิ"],
+            ["ลอยกระทง", "ลอย", "ทง", "ประเพณีขอขมาพระแม่คงคาในคืนวันเพ็ญ"],
+            ["ธงชาติ", "ธง", "ชาติ", "สัญลักษณ์ประจำประเทศ"],
+            ["ชาติไทย", "ชาติ", "ไทย", "ชนชาติและประเทศของคนไทย"],
+            ["สงกรานต์", "สง", "กรานต์", "ประเพณีปีใหม่ไทยเล่นสาดน้ำ"],
+            ["ดนตรี", "ดน", "ตรี", "ศิลปะแห่งเสียงและจังหวะ"],
+            ["กีฬา", "กี", "ฬา", "กิจกรรมออกกำลังกายและแข่งขัน"],
+            ["ฟุตบอล", "ฟุต", "บอล", "กีฬายอดนิยมระดับโลกใช้เท้าเตะลูกบอล"],
+            ["แบดมินตัน", "แบด", "ตัน", "กีฬาตีลูกขนไก่ข้ามตาข่าย"],
+            ["ว่ายน้ำ", "ว่าย", "น้ำ", "กีฬาทางน้ำเพื่อสุขภาพ"],
+            ["สุขภาพ", "สุข", "ภาพ", "ความสมบูรณ์แข็งแรงของร่างกายและจิตใจ"],
+            ["ภาพยนตร์", "ภาพ", "ยนตร์", "หนังที่ฉายในโรงภาพยนตร์"],
+            ["ดารา", "ดา", "รา", "นักแสดงที่มีชื่อเสียงหรือดวงดาว"],
+            ["ราตรี", "รา", "ตรี", "เวลากลางคืน"],
+            ["ตรีโกณมิติ", "ตรี", "ติ", "สาขาหนึ่งของคณิตศาสตร์เกี่ยวกับรูปสามเหลี่ยม"],
+            ["ติชม", "ติ", "ชม", "วิจารณ์ทั้งข้อดีและข้อบกพร่อง"],
+            ["ชมเชย", "ชม", "เชย", "กล่าวสรรเสริญยกย่อง"],
+            ["เชยชม", "เชย", "ชม", "ชื่นชมด้วยความรักใคร่"],
+
+            // คำศัพท์เพิ่มเติมเพื่อความหลากหลายของตัวอักษรขึ้นต้น (ก - ฮ)
+            ["กตัญญู", "กะ", "ญู", "รู้คุณคนและตอบแทนบุญคุณ"],
+            ["ขยะมูลฝอย", "ขะ", "ฝอย", "สิ่งปฏิกูลเหลือทิ้ง"],
+            ["คณิตศาสตร์", "คะ", "ศาสตร์", "วิชาว่าด้วยการคำนวณ"],
+            ["ฆ้องวง", "ฆ้อง", "วง", "เครื่องดนตรีไทยประเภทตี"],
+            ["งดงาม", "งด", "งาม", "สวยงามวิจิตรตระการตา"],
+            ["จินตนาการ", "จิน", "การ", "การสร้างภาพในความคิด"],
+            ["การบ้าน", "การ", "บ้าน", "งานที่ครูมอบหมายให้ทำที่บ้าน"],
+            ["ฉลอง", "ฉะ", "หลอง", "จัดงานรื่นเริงแสดงความยินดี"],
+            ["ช็อกโกแลต", "ช็อก", "แลต", "ขนมหวานทำจากเมล็ดโกโก้"],
+            ["ซื่อสัตย์", "ซื่อ", "สัตย์", "ประพฤติตรงและจริงใจ ไม่คดโกง"],
+            ["ญาติมิตร", "ญาติ", "มิตร", "พี่น้องและเพื่อนฝูง"],
+            ["มิตรภาพ", "มิตร", "ภาพ", "ความสัมพันธ์อันดีระหว่างเพื่อน"],
+            ["ฎีกา", "ฎี", "กา", "คำร้องหรือคำพิพากษาศาลสูงสุด"],
+            ["ฐานะ", "ฐา", "นะ", "ความเป็นอยู่ทางเศรษฐกิจและสังคม"],
+            ["ณรงค์", "ณะ", "รงค์", "การรบ การต่อสู้"],
+            ["ดาราศาสตร์", "ดา", "ศาสตร์", "วิชาที่ศึกษาเกี่ยวกับดวงดาวและอวกาศ"],
+            ["ตุ๊กตา", "ตุ๊ก", "ตา", "ของเล่นจำลองรูปร่างคนหรือสัตว์"],
+            ["ถนนหนทาง", "ถะ", "ทาง", "เส้นทางสัญจรไปมา"],
+            ["ทางด่วน", "ทาง", "ด่วน", "ถนนพิเศษสำหรับทำความเร็ว"],
+            ["ธนาคาร", "ทะ", "คาร", "สถาบันการเงินรับฝากและให้กู้ยืม"],
+            ["ธนบัตร", "ทะ", "บัตร", "เงินตราที่เป็นกระดาษ"],
+            ["บัตรประชาชน", "บัตร", "ชน", "เอกสารยืนยันตัวตนของพลเมือง"],
+            ["ชนบท", "ชน", "บท", "พื้นที่ห่างไกลจากตัวเมือง"],
+            ["บทเรียน", "บท", "เรียน", "เนื้อหาวิชาหรือประสบการณ์ชีวิต"],
+            ["น่ารัก", "น่า", "รัก", "ชวนให้รักใคร่เอ็นดู"],
+            ["นิทาน", "นิ", "ทาน", "เรื่องเล่าเพื่อความบันเทิงและคติสอนใจ"],
+            ["บริสุทธิ์", "บอ", "สุทธิ์", "สะอาดปราศจากมลทิน"],
+            ["ปฏิบัติ", "ปะ", "บัติ", "ลงมือทำตามหน้าที่หรือระเบียบ"],
+            ["ผจญภัย", "ผะ", "ภัย", "การเดินทางฝ่าฟันอุปสรรคอันน่าตื่นเต้น"],
+            ["ภัยพิบัติ", "ภัย", "บัติ", "เหตุการณ์ร้ายแรงที่สร้างความเสียหาย"],
+            ["ฝึกฝน", "ฝึก", "ฝน", "หัดทำซ้ำๆ เพื่อให้เกิดความชำนาญ"],
+            ["พยากรณ์", "พะ", "กรณ์", "การทำนายหรือคาดการณ์ล่วงหน้า"],
+            ["พลังงาน", "พะ", "งาน", "กำลังที่ทำให้สิ่งต่างๆ ทำงานได้"],
+            ["ฟันเฟือง", "ฟัน", "เฟือง", "ชิ้นส่วนสำคัญที่ขับเคลื่อนระบบ"],
+            ["ภูเขาไฟ", "ภู", "ไฟ", "ภูเขาที่มีปล่องพ่นลาวาและเถ้าถ่าน"],
+            ["มรดก", "มอ", "ดก", "ทรัพย์สินหรือวัฒนธรรมที่สืบทอดกันมา"],
+            ["ยุติธรรม", "ยุ", "ธรรม", "ความเที่ยงธรรม ไม่ลำเอียง"],
+            ["ธรรมชาติ", "ทำ", "ชาติ", "สิ่งที่เกิดขึ้นเองตามกฎเกณฑ์ของโลก"],
+            ["วัฒนธรรม", "วัด", "ธรรม", "วิถีชีวิตและประเพณีอันดีงามของสังคม"],
+            ["วิทยาศาสตร์", "วิด", "ศาสตร์", "วิชาศึกษาความจริงของธรรมชาติด้วยการทดลอง"],
+            ["ศิลปะ", "สิน", "ปะ", "ผลงานสร้างสรรค์ที่แสดงออกถึงความงาม"],
+            ["สงบสุข", "สะ", "สุข", "ปราศจากความวุ่นวาย ร่มเย็นเป็นสุข"],
+            ["หุ่นยนต์", "หุ่น", "ยนต์", "เครื่องจักรกลอัตโนมัติทำงานแทนมนุษย์"],
+            ["อิสระ", "อิด", "ระ", "เสรีภาพ ไม่ขึ้นอยู่ภายใต้การบังคับ"],
+            ["ฮีโร่", "ฮี", "โร่", "วีรบุรุษผู้ช่วยเหลือผู้อื่น"],
+            ["เฮฮา", "เฮ", "ฮา", "หัวเราะสนุกสนานครื้นเครง"],
+            ["ฮูก", "ฮูก", "ฮูก", "นกเค้าแมวหากินในเวลากลางคืน"]
+        ];
+
+        // แปลงข้อมูลดิบเป็น Object คลังคำศัพท์ที่มีโครงสร้างพร้อมใช้งาน
+        const DICTIONARY = THAI_DICTIONARY_RAW.map(([word, firstSyl, lastSyl, hint]) => ({
+            word: word.trim(),
+            firstSyl: firstSyl.trim(),
+            lastSyl: lastSyl.trim(),
+            hint: hint.trim(),
+            firstLetter: extractFirstConsonant(word.trim()),
+            lastLetter: extractLastPronounceableConsonant(word.trim())
+        }));
+
+        // คำเริ่มต้นยอดนิยมสำหรับสุ่มเริ่มเกม (คัดคำที่มีตัวต่อเยอะเป็นพิเศษ)
+        const STARTER_WORDS = [
+            "มะม่วง", "โรงเรียน", "ประเทศไทย", "ความรัก", "อาหาร", 
+            "ทะเล", "ความสุข", "ช้างเผือก", "น้ำใจ", "ผีเสื้อ", 
+            "ดวงจันทร์", "ดอกไม้", "สายรุ้ง", "ขนมหวาน", "ภูเขา"
+        ];
+
+        /**
+         * ฟังก์ชันดึงพยัญชนะต้นตัวแรกของคำภาษาไทย (ข้ามสระหน้า เช่น เ แ โ ใ ไ)
+         */
+        function extractFirstConsonant(word) {
+            const leadingVowels = ['เ', 'แ', 'โ', 'ใ', 'ไ'];
+            for (let i = 0; i < word.length; i++) {
+                const ch = word[i];
+                if (!leadingVowels.includes(ch) && ch >= 'ก' && ch <= 'ฮ') {
+                    return ch;
+                }
+            }
+            return word[0] || '';
+        }
+
+        /**
+         * ฟังก์ชันดึงพยัญชนะตัวสุดท้ายที่ออกเสียงได้ (ข้ามสระท้าย วรรณยุกต์ และตัวการันต์)
+         */
+        function extractLastPronounceableConsonant(word) {
+            // ลบตัวการันต์และพยัญชนะที่ถูกฆ่า (เช่น ์ และตัวก่อนหน้า 1 ตัว)
+            let cleaned = word.replace(/.์/g, '');
+            // วนจากท้ายสุดกลับมาหาพยัญชนะ ก-ฮ
+            for (let i = cleaned.length - 1; i >= 0; i--) {
+                const ch = cleaned[i];
+                if (ch >= 'ก' && ch <= 'ฮ') {
+                    return ch;
+                }
+            }
+            return cleaned[cleaned.length - 1] || '';
+        }
+
+        /**
+         * ฟังก์ชันวิเคราะห์พยางค์แรกและพยางค์สุดท้ายสำหรับคำใหม่ที่ผู้เล่นพิมพ์เข้ามาเอง (กรณีไม่มีในคลังคำศัพท์)
+         */
+        function analyzeCustomThaiWord(word) {
+            // ตรวจสอบว่าอยู่ในคลังคำศัพท์หรือไม่ก่อน
+            const found = DICTIONARY.find(item => item.word === word);
+            if (found) return found;
+
+            // วิเคราะห์พยางค์เบื้องต้นแบบ Heuristic สำหรับภาษาไทย
+            // แยกกลุ่มพยัญชนะ+สระคร่าวๆ
+            const leadingVowels = ['เ', 'แ', 'โ', 'ใ', 'ไ'];
+            const vowelsAndMarks = /[\u0E30-\u0E3A\u0E40-\u0E4E]/g;
+            
+            // ตัดตัวการันต์ออกก่อนวิเคราะห์เสียงท้าย
+            const cleanForSound = word.replace(/.์/g, '');
+            
+            // หาพยางค์สุดท้ายโดยประมาณ: หาตำแหน่งสระหน้าตัวสุดท้าย หรือพยัญชนะต้นของพยางค์ท้าย
+            let lastSyl = cleanForSound;
+            if (cleanForSound.length > 2) {
+                // ตรวจสอบว่ามีสระหน้า (เ แ โ ใ ไ) อยู่ในช่วงครึ่งหลังของคำหรือไม่
+                let lastLeadingIdx = -1;
+                for (let i = 1; i < cleanForSound.length; i++) {
+                    if (leadingVowels.includes(cleanForSound[i])) {
+                        lastLeadingIdx = i;
+                    }
+                }
+
+                if (lastLeadingIdx > 0) {
+                    lastSyl = cleanForSound.slice(lastLeadingIdx);
+                } else {
+                    // หาพยัญชนะที่เป็นแกนของพยางค์สุดท้าย
+                    let consonantIndices = [];
+                    for (let i = 0; i < cleanForSound.length; i++) {
+                        if (cleanForSound[i] >= 'ก' && cleanForSound[i] <= 'ฮ') {
+                            consonantIndices.push(i);
+                        }
+                    }
+                    if (consonantIndices.length >= 2) {
+                        // ถ้าตัวสุดท้ายเป็นตัวสะกด (ไม่มีสระตามหลัง) พยางค์สุดท้ายจะเริ่มที่พยัญชนะก่อนหน้า
+                        const lastC = consonantIndices[consonantIndices.length - 1];
+                        const prevC = consonantIndices[consonantIndices.length - 2];
+                        const hasTrailingVowel = lastC < cleanForSound.length - 1 && !['ั', 'ิ', 'ี', 'ึ', 'ื', 'ุ', 'ู'].includes(cleanForSound[lastC + 1]);
+                        
+                        if (hasTrailingVowel) {
+                            lastSyl = cleanForSound.slice(lastC);
+                        } else {
+                            // ตรวจสอบสระหน้าก่อน prevC
+                            const startIdx = (prevC > 0 && leadingVowels.includes(cleanForSound[prevC - 1])) ? prevC - 1 : prevC;
+                            lastSyl = cleanForSound.slice(startIdx);
+                        }
+                    }
+                }
+            }
+
+            // ลบวรรณยุกต์ออกเพื่อให้ต่อคำได้ยืดหยุ่นขึ้น
+            const stripTones = (str) => str.replace(/[\u0E48-\u0E4B]/g, '');
+
+            return {
+                word: word,
+                firstSyl: stripTones(word.slice(0, Math.min(3, word.length))),
+                lastSyl: stripTones(lastSyl),
+                firstLetter: extractFirstConsonant(word),
+                lastLetter: extractLastPronounceableConsonant(word),
+                hint: "คำศัพท์จากคลังความรู้ของผู้เล่น"
+            };
+        }
+
+        // ==================== GAME STATE ====================
+        let gameState = {
+            mode: 'ai',          // 'ai' | 'solo'
+            rule: 'syllable',    // 'syllable' | 'letter'
+            timeLimit: 25,       // seconds
+            timeLeft: 25,
+            timerInterval: null,
+            isPlaying: false,
+            isBotTurn: false,
+            score: 0,
+            combo: 0,
+            maxCombo: 0,
+            highScore: parseInt(localStorage.getItem('thaiWordChainHighScore') || '0', 10),
+            usedWords: new Set(),
+            chain: [],           // Array of { sender: 'system'|'player'|'bot', wordObj, matchPart }
+            hintsRemaining: 3,
+            currentHintWord: null,
+            soundEnabled: true
+        };
+
+        // ==================== SOUND EFFECTS (Tone.js) ====================
+        let synth = null;
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.05, release: 0.3 }
+                }).toDestination();
+                synth.volume.value = -8;
+            }
+        }
+
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                const now = Tone.now();
+                if (type === 'success') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5"], "16n", now);
+                } else if (type === 'bot') {
+                    synth.triggerAttackRelease(["A4", "D5"], "16n", now);
+                } else if (type === 'error') {
+                    synth.triggerAttackRelease(["E3", "Eb3"], "8n", now);
+                } else if (type === 'hint') {
+                    synth.triggerAttackRelease(["G5", "B5"], "16n", now);
+                } else if (type === 'gameover') {
+                    synth.triggerAttackRelease(["G4", "E4", "C4"], "4n", now);
+                }
+            } catch (e) {
+                // Ignore audio context autoplay restrictions if any
+            }
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (gameState.soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-base sm:text-lg';
+                playSound('hint');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-base sm:text-lg text-slate-400';
+            }
+        }
+
+        // ==================== UI SELECTION HANDLERS ====================
+        function updateHighScoreDisplays() {
+            document.getElementById('headerHighScore').textContent = gameState.highScore;
+            document.getElementById('mobileHighScore').textContent = gameState.highScore;
+        }
+        updateHighScoreDisplays();
+
+        function selectGameMode(mode) {
+            gameState.mode = mode;
+            const aiBtn = document.getElementById('modeAiBtn');
+            const soloBtn = document.getElementById('modeSoloBtn');
+
+            if (mode === 'ai') {
+                aiBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-orange-500 bg-white shadow-sm transition flex items-start gap-3";
+                soloBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-transparent bg-white/70 hover:bg-white transition flex items-start gap-3";
+            } else {
+                soloBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-white shadow-sm transition flex items-start gap-3";
+                aiBtn.className = "w-full text-left p-3.5 rounded-xl border-2 border-transparent bg-white/70 hover:bg-white transition flex items-start gap-3";
+            }
+        }
+
+        function selectRuleType(rule) {
+            gameState.rule = rule;
+            const sylBtn = document.getElementById('ruleSyllableBtn');
+            const letBtn = document.getElementById('ruleLetterBtn');
+            const sylCheck = document.getElementById('ruleSyllableCheck');
+            const letCheck = document.getElementById('ruleLetterCheck');
+
+            if (rule === 'syllable') {
+                sylBtn.className = "w-full text-left p-3 rounded-xl border-2 border-orange-500 bg-white shadow-sm transition";
+                letBtn.className = "w-full text-left p-3 rounded-xl border-2 border-transparent bg-white/70 hover:bg-white transition";
+                sylCheck.className = "fa-solid fa-circle-check text-orange-500";
+                letCheck.className = "fa-solid fa-circle-check text-slate-300";
+            } else {
+                letBtn.className = "w-full text-left p-3 rounded-xl border-2 border-orange-500 bg-white shadow-sm transition";
+                sylBtn.className = "w-full text-left p-3 rounded-xl border-2 border-transparent bg-white/70 hover:bg-white transition";
+                letCheck.className = "fa-solid fa-circle-check text-orange-500";
+                sylCheck.className = "fa-solid fa-circle-check text-slate-300";
+            }
+        }
+
+        function selectTimeLimit(seconds) {
+            gameState.timeLimit = seconds;
+            [15, 25, 40].forEach(t => {
+                const btn = document.getElementById(`time${t}Btn`);
+                if (t === seconds) {
+                    btn.className = "py-1.5 px-2 rounded-lg text-xs font-bold border-2 border-orange-500 bg-orange-50 text-orange-700 transition";
+                } else {
+                    btn.className = "py-1.5 px-2 rounded-lg text-xs font-bold border border-amber-300 bg-white text-slate-700 hover:bg-amber-100 transition";
+                }
+            });
+        }
+
+        function toggleRulesModal(show) {
+            const modal = document.getElementById('rulesModal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function returnToMenu() {
+            stopTimer();
+            gameState.isPlaying = false;
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('flex');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('setupScreen').classList.remove('hidden');
+        }
+
+        // ==================== CORE GAME LOGIC ====================
+        function startGame() {
+            initAudio();
+            stopTimer();
+
+            // Reset State
+            gameState.isPlaying = true;
+            gameState.isBotTurn = false;
+            gameState.score = 0;
+            gameState.combo = 0;
+            gameState.maxCombo = 0;
+            gameState.usedWords.clear();
+            gameState.chain = [];
+            gameState.hintsRemaining = 3;
+            gameState.currentHintWord = null;
+
+            // Update UI Screens
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            const gameScreen = document.getElementById('gameScreen');
+            gameScreen.classList.remove('hidden');
+            gameScreen.classList.add('flex');
+
+            document.getElementById('hintBox').classList.add('hidden');
+            document.getElementById('hintCountDisplay').textContent = gameState.hintsRemaining;
+            document.getElementById('activeRuleBadge').textContent = 
+                gameState.rule === 'syllable' ? '🔗 ต่อพยางค์' : '🔤 ต่อตัวอักษร';
+
+            // Pick a random starter word
+            const randomStarter = STARTER_WORDS[Math.floor(Math.random() * STARTER_WORDS.length)];
+            const starterObj = DICTIONARY.find(w => w.word === randomStarter) || DICTIONARY[0];
+
+            addWordToChain('system', starterObj, '');
+            updateHUD();
+            preparePlayerTurn();
+            playSound('success');
+        }
+
+        function getRequiredTarget(wordObj) {
+            return gameState.rule === 'syllable' ? wordObj.lastSyl : wordObj.lastLetter;
+        }
+
+        function preparePlayerTurn() {
+            gameState.isBotTurn = false;
+            const latestEntry = gameState.chain[gameState.chain.length - 1];
+            const target = getRequiredTarget(latestEntry.wordObj);
+
+            // Update Prompt Banner
+            const avatar = document.getElementById('turnAvatar');
+            avatar.className = "w-11 h-11 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shrink-0 shadow-inner";
+            avatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+
+            document.getElementById('turnStatusText').textContent = 
+                gameState.mode === 'ai' ? 'ตาของคุณ! รีบต่อคำเลย' : 'ต่อคำต่อเนื่องเพื่อทำคอมโบ!';
+            document.getElementById('turnStatusText').className = "text-xs font-bold text-orange-600 uppercase tracking-wide";
+            document.getElementById('latestWordDisplay').textContent = latestEntry.wordObj.word;
+            document.getElementById('targetMatchDisplay').textContent = target;
+
+            // Enable Input
+            const input = document.getElementById('wordInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const hintBtn = document.getElementById('hintBtn');
+            input.disabled = false;
+            submitBtn.disabled = false;
+            hintBtn.disabled = gameState.hintsRemaining <= 0;
+            input.value = '';
+            input.placeholder = `พิมพ์คำที่ขึ้นต้นด้วย "${target}" ...`;
+            input.focus();
+
+            document.getElementById('botThinkingIndicator').classList.add('hidden');
+            document.getElementById('hintBox').classList.add('hidden');
+            gameState.currentHintWord = null;
+
+            startTimer();
+        }
+
+        /**
+         * ตรวจสอบความถูกต้องของคำที่ผู้เล่นป้อนเข้ามา
+         */
+        function validatePlayerWord(rawInput, target) {
+            const word = rawInput.trim();
+
+            if (!word) {
+                return { valid: false, reason: "กรุณาพิมพ์คำศัพท์ก่อนส่ง!" };
+            }
+
+            if (/\s/.test(word)) {
+                return { valid: false, reason: "ห้ามเว้นวรรค กรุณาพิมพ์เป็น 1 คำ" };
+            }
+
+            // ตรวจสอบว่าเป็นภาษาไทยล้วน (Unicode range ก-ฮ, สระ, วรรณยุกต์)
+            if (!/^[\u0E01-\u0E3A\u0E40-\u0E4E]+$/.test(word)) {
+                return { valid: false, reason: "กรุณาพิมพ์ด้วยตัวอักษรภาษาไทยเท่านั้น" };
+            }
+
+            if (word.length < 2) {
+                return { valid: false, reason: "คำศัพท์สั้นเกินไป (ต้องมีอย่างน้อย 2 ตัวอักษร)" };
+            }
+
+            if (gameState.usedWords.has(word)) {
+                return { valid: false, reason: `คำว่า "${word}" ถูกใช้ไปแล้วในรอบนี้!` };
+            }
+
+            // วิเคราะห์คำศัพท์
+            const wordObj = analyzeCustomThaiWord(word);
+            const stripTones = (s) => s.replace(/[\u0E48-\u0E4B]/g, '');
+            const cleanTarget = stripTones(target);
+
+            if (gameState.rule === 'syllable') {
+                // ตรวจสอบว่าคำใหม่ขึ้นต้นด้วยพยางค์เป้าหมาย หรือคำในคลังมี firstSyl ตรงกับ target
+                const cleanWord = stripTones(word);
+                const matchesPrefix = cleanWord.startsWith(cleanTarget) || stripTones(wordObj.firstSyl) === cleanTarget;
+                if (!matchesPrefix) {
+                    return { valid: false, reason: `คำว่า "${word}" ไม่ได้ขึ้นต้นด้วยพยางค์ "${target}"` };
+                }
+            } else {
+                // โหมดต่อตัวอักษรสุดท้าย
+                if (wordObj.firstLetter !== target) {
+                    return { valid: false, reason: `คำว่า "${word}" ไม่ได้ขึ้นต้นด้วยตัวอักษร "${target}"` };
+                }
+            }
+
+            return { valid: true, wordObj };
+        }
+
+        function handleWordSubmit(event) {
+            event.preventDefault();
+            if (!gameState.isPlaying || gameState.isBotTurn) return;
+
+            const input = document.getElementById('wordInput');
+            const latestEntry = gameState.chain[gameState.chain.length - 1];
+            const target = getRequiredTarget(latestEntry.wordObj);
+
+            const validation = validatePlayerWord(input.value, target);
+            if (!validation.valid) {
+                triggerErrorFeedback(validation.reason);
+                return;
+            }
+
+            // คำตอบถูกต้อง!
+            stopTimer();
+            playSound('success');
+
+            // คำนวณคะแนน + โบนัสความเร็ว + โบนัสคอมโบ
+            gameState.combo += 1;
+            if (gameState.combo > gameState.maxCombo) {
+                gameState.maxCombo = gameState.combo;
+            }
+            const speedBonus = Math.ceil((gameState.timeLeft / gameState.timeLimit) * 10);
+            const comboBonus = (gameState.combo - 1) * 5;
+            const lengthBonus = Math.max(0, (validation.wordObj.word.length - 3) * 2);
+            const earnedPoints = 10 + speedBonus + comboBonus + lengthBonus;
+            gameState.score += earnedPoints;
+
+            addWordToChain('player', validation.wordObj, target, earnedPoints);
+            updateHUD();
+            showToast(`เยี่ยมมาก! +${earnedPoints} คะแนน`, 'success');
+
+            // ดำเนินการต่อตามโหมดเกม
+            if (gameState.mode === 'ai') {
+                triggerBotTurn();
+            } else {
+                preparePlayerTurn();
+            }
+        }
+
+        /**
+         * ตาของบอท (Vs AI Mode)
+         */
+        function triggerBotTurn() {
+            gameState.isBotTurn = true;
+            const latestEntry = gameState.chain[gameState.chain.length - 1];
+            const target = getRequiredTarget(latestEntry.wordObj);
+
+            // Lock Player Input
+            const input = document.getElementById('wordInput');
+            input.value = '';
+            input.disabled = true;
+            input.placeholder = "รอสักครู่ น้องบอทกำลังคิดคำ...";
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('hintBtn').disabled = true;
+            document.getElementById('hintBox').classList.add('hidden');
+
+            const avatar = document.getElementById('turnAvatar');
+            avatar.className = "w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl shrink-0 animate-bounce";
+            avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
+
+            document.getElementById('turnStatusText').textContent = 'ตาของน้องบอท AI...';
+            document.getElementById('turnStatusText').className = "text-xs font-bold text-indigo-600 uppercase tracking-wide";
+            document.getElementById('latestWordDisplay').textContent = latestEntry.wordObj.word;
+            document.getElementById('targetMatchDisplay').textContent = target;
+            document.getElementById('botThinkingIndicator').classList.remove('hidden');
+
+            // Simulate natural thinking delay (0.9s - 1.6s)
+            const delay = 900 + Math.random() * 700;
+            setTimeout(() => {
+                if (!gameState.isPlaying) return;
+
+                const botCandidate = findMatchingWordInDictionary(target);
+                if (!botCandidate) {
+                    // บอทจนมุม! ผู้เล่นชนะและได้โบนัสก้อนใหญ่
+                    gameState.score += 100;
+                    updateHUD();
+                    endGame('🎉 ยินดีด้วย! น้องบอทคิดคำไม่ออก คุณเอาชนะบอทได้สำเร็จ (+100 โบนัส)', true);
+                    return;
+                }
+
+                playSound('bot');
+                addWordToChain('bot', botCandidate, target);
+                updateHUD();
+                preparePlayerTurn();
+            }, delay);
+        }
+
+        /**
+         * ค้นหาคำในคลังคำศัพท์ที่ตรงกับเงื่อนไขและยังไม่ถูกใช้
+         */
+        function findMatchingWordInDictionary(target) {
+            const stripTones = (s) => s.replace(/[\u0E48-\u0E4B]/g, '');
+            const cleanTarget = stripTones(target);
+
+            const candidates = DICTIONARY.filter(item => {
+                if (gameState.usedWords.has(item.word)) return false;
+                if (gameState.rule === 'syllable') {
+                    return stripTones(item.firstSyl) === cleanTarget || stripTones(item.word).startsWith(cleanTarget);
+                } else {
+                    return item.firstLetter === target;
+                }
+            });
+
+            if (candidates.length === 0) return null;
+
+            // จัดลำดับความสำคัญให้คำที่มีตัวต่อในคลังต่อได้อีก เพื่อไม่ให้เกมตันเร็วเกินไป
+            const goodCandidates = candidates.filter(c => {
+                const nextTarget = getRequiredTarget(c);
+                return DICTIONARY.some(nextItem => 
+                    !gameState.usedWords.has(nextItem.word) && 
+                    nextItem.word !== c.word &&
+                    (gameState.rule === 'syllable' 
+                        ? stripTones(nextItem.firstSyl) === stripTones(nextTarget) 
+                        : nextItem.firstLetter === nextTarget)
+                );
+            });
+
+            const pool = goodCandidates.length > 0 ? goodCandidates : candidates;
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        // ==================== HINT SYSTEM ====================
+        function useHint() {
+            if (!gameState.isPlaying || gameState.isBotTurn || gameState.hintsRemaining <= 0) return;
+
+            const latestEntry = gameState.chain[gameState.chain.length - 1];
+            const target = getRequiredTarget(latestEntry.wordObj);
+            const candidate = findMatchingWordInDictionary(target);
+
+            if (!candidate) {
+                showToast("ไม่พบคำใบ้ในคลังสำหรับพยางค์นี้ ลองคิดคำใหม่ดูนะ!", "error");
+                return;
+            }
+
+            playSound('hint');
+            gameState.hintsRemaining -= 1;
+            gameState.score = Math.max(0, gameState.score - 15);
+            gameState.currentHintWord = candidate.word;
+
+            document.getElementById('hintCountDisplay').textContent = gameState.hintsRemaining;
+            if (gameState.hintsRemaining <= 0) {
+                document.getElementById('hintBtn').disabled = true;
+            }
+            updateHUD();
+
+            const maskedWord = candidate.word[0] + "●".repeat(Math.max(1, candidate.word.length - 1));
+            document.getElementById('hintText').innerHTML = 
+                `คำใบ้ (-15 คะแนน): <strong>${candidate.hint}</strong> (${candidate.word.length} ตัวอักษร: <span class="text-orange-600 font-bold">${maskedWord}</span>)`;
+            document.getElementById('hintBox').classList.remove('hidden');
+        }
+
+        function applyHintWord() {
+            if (!gameState.currentHintWord || gameState.isBotTurn) return;
+            const input = document.getElementById('wordInput');
+            input.value = gameState.currentHintWord;
+            input.focus();
+        }
+
+        // ==================== CHAIN VISUALIZATION ====================
+        function addWordToChain(sender, wordObj, matchedPart, points = 0) {
+            gameState.usedWords.add(wordObj.word);
+            gameState.chain.push({ sender, wordObj, matchedPart, points });
+
+            const container = document.getElementById('chainContainer');
+            const wrapper = document.createElement('div');
+            wrapper.className = "animate-pop-in flex flex-col";
+
+            // ไฮไลต์ส่วนที่เชื่อมโยง (หัวคำ) และส่วนที่ส่งต่อ (ท้ายคำ)
+            const formattedWord = formatHighlightedWord(wordObj, matchedPart);
+
+            if (sender === 'system') {
+                wrapper.classList.add('items-center');
+                wrapper.innerHTML = `
+                    <div class="px-4 py-2 rounded-2xl bg-amber-100/90 border border-amber-300 text-center shadow-sm">
+                        <div class="text-[10px] font-bold text-amber-700 uppercase">คำเริ่มต้น</div>
+                        <div class="text-base sm:text-lg font-extrabold text-slate-800">${formattedWord}</div>
+                        <div class="text-[11px] text-amber-800/80">${wordObj.hint}</div>
+                    </div>
+                `;
+            } else if (sender === 'player') {
+                wrapper.classList.add('items-end');
+                wrapper.innerHTML = `
+                    <div class="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md">
+                        <div class="flex items-center justify-between gap-3 text-[10px] text-amber-100 font-semibold mb-0.5">
+                            <span>คุณ</span>
+                            <span>+${points} คะแนน</span>
+                        </div>
+                        <div class="text-base sm:text-lg font-bold tracking-wide">${formattedWord}</div>
+                    </div>
+                `;
+            } else if (sender === 'bot') {
+                wrapper.classList.add('items-start');
+                wrapper.innerHTML = `
+                    <div class="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-sm bg-white border border-indigo-200 text-slate-800 shadow-sm">
+                        <div class="flex items-center gap-1.5 text-[10px] text-indigo-600 font-bold mb-0.5">
+                            <i class="fa-solid fa-robot"></i> น้องบอท AI
+                        </div>
+                        <div class="text-base sm:text-lg font-bold text-slate-800">${formattedWord}</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">${wordObj.hint}</div>
+                    </div>
+                `;
+            }
+
+            container.appendChild(wrapper);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function formatHighlightedWord(wordObj, matchedPart) {
+            const w = wordObj.word;
+            const nextTarget = getRequiredTarget(wordObj);
+
+            // เน้นตัวอักษรหรือพยางค์ท้ายที่จะส่งต่อไปคำถัดไป
+            if (gameState.rule === 'letter') {
+                const lastIdx = w.lastIndexOf(nextTarget);
+                if (lastIdx !== -1) {
+                    return `${w.slice(0, lastIdx)}<span class="underline decoration-2 underline-offset-4 font-extrabold">${w[lastIdx]}</span>${w.slice(lastIdx + 1)}`;
+                }
+            } else {
+                const sylIdx = w.lastIndexOf(nextTarget);
+                if (sylIdx !== -1) {
+                    return `${w.slice(0, sylIdx)}<span class="underline decoration-2 underline-offset-4 font-extrabold">${w.slice(sylIdx)}</span>`;
+                }
+            }
+            return w;
+        }
+
+        // ==================== TIMER & FEEDBACK ====================
+        function startTimer() {
+            stopTimer();
+            gameState.timeLeft = gameState.timeLimit;
+            updateTimerUI();
+
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft -= 0.1;
+                if (gameState.timeLeft <= 0) {
+                    gameState.timeLeft = 0;
+                    updateTimerUI();
+                    stopTimer();
+                    endGame('⏰ หมดเวลาแล้ว! คิดคำไม่ทันในเวลาที่กำหนด');
+                    return;
+                }
+                updateTimerUI();
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+            }
+        }
+
+        function updateTimerUI() {
+            const pct = Math.max(0, (gameState.timeLeft / gameState.timeLimit) * 100);
+            const bar = document.getElementById('timerBar');
+            const badge = document.getElementById('timerTextBadge');
+
+            bar.style.width = `${pct}%`;
+            badge.textContent = `${Math.ceil(gameState.timeLeft)}s`;
+
+            if (pct <= 25) {
+                bar.className = "h-full rounded-full bg-rose-500 transition-all duration-100 ease-linear";
+                badge.className = "absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold px-2 py-1 rounded-lg bg-rose-100 text-rose-700 animate-pulse";
+            } else if (pct <= 50) {
+                bar.className = "h-full rounded-full bg-amber-500 transition-all duration-100 ease-linear";
+                badge.className = "absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold px-2 py-1 rounded-lg bg-amber-100 text-amber-800";
+            } else {
+                bar.className = "h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-500 to-orange-500 transition-all duration-100 ease-linear";
+                badge.className = "absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold px-2 py-1 rounded-lg bg-amber-100 text-amber-800";
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('scoreDisplay').textContent = gameState.score;
+            document.getElementById('comboDisplay').textContent = gameState.combo;
+            const playerWords = gameState.chain.filter(c => c.sender === 'player').length;
+            document.getElementById('wordCountDisplay').textContent = playerWords;
+
+            const fire = document.getElementById('comboFire');
+            if (gameState.combo >= 3) {
+                fire.classList.remove('hidden');
+            } else {
+                fire.classList.add('hidden');
+            }
+        }
+
+        function triggerErrorFeedback(message) {
+            playSound('error');
+            gameState.combo = 0; // รีเซ็ตคอมโบเมื่อตอบผิด
+            updateHUD();
+
+            const input = document.getElementById('wordInput');
+            input.classList.remove('animate-shake', 'border-rose-500');
+            void input.offsetWidth; // trigger reflow
+            input.classList.add('animate-shake', 'border-rose-500');
+            setTimeout(() => {
+                input.classList.remove('border-rose-500');
+            }, 600);
+
+            showToast(message, 'error');
+            input.focus();
+        }
+
+        let toastTimeout = null;
+        function showToast(text, type) {
+            const toast = document.getElementById('feedbackToast');
+            toast.textContent = text;
+            toast.classList.remove('hidden', 'bg-rose-600', 'bg-emerald-600', 'text-white');
+
+            if (type === 'error') {
+                toast.classList.add('bg-rose-600', 'text-white');
+            } else {
+                toast.classList.add('bg-emerald-600', 'text-white');
+            }
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2200);
+        }
+
+        // ==================== END GAME ====================
+        function endGame(reasonText, isVictory = false) {
+            stopTimer();
+            gameState.isPlaying = false;
+            playSound(isVictory ? 'success' : 'gameover');
+
+            // Check & Save High Score
+            let isNewRecord = false;
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('thaiWordChainHighScore', String(gameState.highScore));
+                updateHighScoreDisplays();
+                isNewRecord = true;
+            }
+
+            // Switch Screens
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('flex');
+            const overScreen = document.getElementById('gameOverScreen');
+            overScreen.classList.remove('hidden');
+
+            document.getElementById('gameOverTitle').textContent = isVictory ? 'ยอดเยี่ยม! คุณชนะแล้ว' : 'จบเกมแล้ว!';
+            document.getElementById('gameOverReason').textContent = reasonText;
+
+            const iconBox = document.getElementById('gameOverIcon');
+            iconBox.innerHTML = isVictory 
+                ? '<i class="fa-solid fa-crown"></i>' 
+                : '<i class="fa-solid fa-flag-checkered"></i>';
+
+            const recordBanner = document.getElementById('newHighScoreBanner');
+            if (isNewRecord && gameState.score > 0) {
+                recordBanner.classList.remove('hidden');
+            } else {
+                recordBanner.classList.add('hidden');
+            }
+
+            const playerWords = gameState.chain.filter(c => c.sender === 'player').length;
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('finalMaxCombo').textContent = gameState.maxCombo;
+            document.getElementById('finalWordCount').textContent = playerWords;
+        }
+    </script>
+</body>
+</html>
